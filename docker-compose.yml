@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  cache:
+    image: redis:latest
+    restart: always
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - cache:/data
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=fizzbuzz
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+  app:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./fizzbuzz/:/go/src/github.com/fizzbuzz
+    working_dir: /go/src/github.com/fizzbuzz
+    command: -build.cmd "go build -o ./tmp/main ./cmd/server/main.go"
+    depends_on:
+      - cache
+      - db
+    environment:
+      - CGO_ENABLED=0
+
+volumes:
+  cache:
+    driver: local
+  postgres-volume:
+    external: false
