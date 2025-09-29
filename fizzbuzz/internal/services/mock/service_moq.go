@@ -23,6 +23,9 @@ var _ services.Service = &ServiceMock{}
 //			GetFizzBuzzFunc: func(ctx context.Context, fizzBuzz models.FizzBuzz) (string, error) {
 //				panic("mock out the GetFizzBuzz method")
 //			},
+//			GetStatsFunc: func(ctx context.Context) (models.FizzBuzzRequest, error) {
+//				panic("mock out the GetStats method")
+//			},
 //		}
 //
 //		// use mockedService in code that requires services.Service
@@ -33,6 +36,9 @@ type ServiceMock struct {
 	// GetFizzBuzzFunc mocks the GetFizzBuzz method.
 	GetFizzBuzzFunc func(ctx context.Context, fizzBuzz models.FizzBuzz) (string, error)
 
+	// GetStatsFunc mocks the GetStats method.
+	GetStatsFunc func(ctx context.Context) (models.FizzBuzzRequest, error)
+
 	// calls tracks calls to the methods.
 	calls struct {
 		// GetFizzBuzz holds details about calls to the GetFizzBuzz method.
@@ -42,8 +48,14 @@ type ServiceMock struct {
 			// FizzBuzz is the fizzBuzz argument value.
 			FizzBuzz models.FizzBuzz
 		}
+		// GetStats holds details about calls to the GetStats method.
+		GetStats []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+		}
 	}
 	lockGetFizzBuzz sync.RWMutex
+	lockGetStats    sync.RWMutex
 }
 
 // GetFizzBuzz calls GetFizzBuzzFunc.
@@ -79,5 +91,37 @@ func (mock *ServiceMock) GetFizzBuzzCalls() []struct {
 	mock.lockGetFizzBuzz.RLock()
 	calls = mock.calls.GetFizzBuzz
 	mock.lockGetFizzBuzz.RUnlock()
+	return calls
+}
+
+// GetStats calls GetStatsFunc.
+func (mock *ServiceMock) GetStats(ctx context.Context) (models.FizzBuzzRequest, error) {
+	if mock.GetStatsFunc == nil {
+		panic("ServiceMock.GetStatsFunc: method is nil but Service.GetStats was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+	}{
+		Ctx: ctx,
+	}
+	mock.lockGetStats.Lock()
+	mock.calls.GetStats = append(mock.calls.GetStats, callInfo)
+	mock.lockGetStats.Unlock()
+	return mock.GetStatsFunc(ctx)
+}
+
+// GetStatsCalls gets all the calls that were made to GetStats.
+// Check the length with:
+//
+//	len(mockedService.GetStatsCalls())
+func (mock *ServiceMock) GetStatsCalls() []struct {
+	Ctx context.Context
+} {
+	var calls []struct {
+		Ctx context.Context
+	}
+	mock.lockGetStats.RLock()
+	calls = mock.calls.GetStats
+	mock.lockGetStats.RUnlock()
 	return calls
 }

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
 
 	"github.com/fizzbuzz/internal/config"
 	"github.com/fizzbuzz/internal/handlers"
@@ -38,6 +39,12 @@ func run(ctx context.Context) error {
 		log.Fatal("Failed to connect to database:", err)
 	}
 	defer db.Close()
+
+	goose.SetDialect("postgres")
+
+	if err := goose.Up(db, "internal/repository/migrations"); err != nil {
+		log.Fatal(err)
+	}
 
 	repository := repository.NewRepository(db)
 

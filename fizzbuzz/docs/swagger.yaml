@@ -1,0 +1,43 @@
+definitions:
+  github_com_fizzbuzz_internal_models.HealthData:
+    properties:
+      status:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/fizzbuzz:
+    get:
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Handle Get Fizz Buzz
+      tags:
+      - Fizz-Buzz
+  /health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_fizzbuzz_internal_models.HealthData'
+      summary: Handle Get Health
+      tags:
+      - Cashback
+swagger: "2.0"
