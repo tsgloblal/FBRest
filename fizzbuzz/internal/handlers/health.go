@@ -11,7 +11,7 @@ import (
 // Get Health godoc
 //
 //	@Summary	Handle Get Health
-//	@Tags		Cashback
+//	@Tags		Health
 //	@Produce	json
 //	@Success	200	{object}	models.HealthData
 //	@Router		/health [get]
