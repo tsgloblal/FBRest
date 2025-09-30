@@ -8,9 +8,12 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/fizzbuzz/internal/models"
 	"github.com/fizzbuzz/internal/repository"
+	"github.com/fizzbuzz/utils"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 )
 
@@ -21,14 +24,16 @@ type Service interface {
 }
 
 type service struct {
-	repository *repository.Repository
-	Log        zerolog.Logger
+	repository  *repository.Repository
+	redisClient *redis.Client
+	Log         zerolog.Logger
 }
 
-func NewService(repository *repository.Repository) Service {
+func NewService(repository *repository.Repository, redisClient *redis.Client) Service {
 	return &service{
-		repository: repository,
-		Log:        zerolog.New(os.Stderr).With().Timestamp().Logger(),
+		repository:  repository,
+		redisClient: redisClient,
+		Log:         zerolog.New(os.Stderr).With().Timestamp().Logger(),
 	}
 }
 
@@ -52,7 +57,7 @@ func (s *service) GetFizzBuzz(ctx context.Context, fizzBuzz models.FizzBuzz) (st
 		Result: result,
 	}
 
-	if err := s.repository.SetFizzBuzz(ctx, fizzBuzzRequest); err != nil {
+	if err := s.setFizzBuzz(ctx, fizzBuzz, fizzBuzzRequest); err != nil {
 		s.Log.Error().Err(err).Msg("error saving fizz-buzz")
 		return "", fmt.Errorf("error saving fizz-buzz")
 	}
@@ -61,6 +66,16 @@ func (s *service) GetFizzBuzz(ctx context.Context, fizzBuzz models.FizzBuzz) (st
 }
 
 func (s *service) getStored(ctx context.Context, fizzBuzz models.FizzBuzz) (string, error) {
+	encodedFizzbuzz, err := utils.EncodeStruct(fizzBuzz)
+	if err != nil {
+		s.Log.Error().Err(err).Msg("error encoding fizz-buzz")
+		return "", fmt.Errorf("error encoding fizz-buzz")
+	}
+
+	cached := s.getCacheFizzBuzz(ctx, encodedFizzbuzz)
+	if cached != "" {
+		return cached, nil
+	}
 	stored, err := s.repository.GetFizzBuzz(ctx, fizzBuzz)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		s.Log.Error().Err(err).Msg("error fetching fizz-buzz")
@@ -101,5 +116,30 @@ func (s *service) GetStats(ctx context.Context) (models.FizzBuzzRequest, error) 
 		return models.FizzBuzzRequest{}, fmt.Errorf("error fetching fizz-buzz stats")
 	}
 
-	return result, nil
+	return result[0], nil
+}
+
+func (s *service) setFizzBuzz(ctx context.Context, fizzBuzz models.FizzBuzz, fizzBuzzRequest models.FizzBuzzRequest) error {
+	if err := s.repository.SetFizzBuzz(ctx, fizzBuzzRequest); err != nil {
+		s.Log.Error().Err(err).Msg("error saving fizz-buzz")
+		return fmt.Errorf("error saving fizz-buzz")
+	}
+
+	encodedFizzbuzz, err := utils.EncodeStruct(fizzBuzz)
+	if err != nil {
+		s.Log.Error().Err(err).Msg("error encoding fizz-buzz")
+		return fmt.Errorf("error encoding fizz-buzz")
+	}
+
+	s.setCacheFizzBuzz(ctx, encodedFizzbuzz, fizzBuzzRequest.Result)
+
+	return nil
+}
+
+func (s *service) getCacheFizzBuzz(ctx context.Context, fizzBuzz string) string {
+	return s.redisClient.Get(ctx, fizzBuzz).Val()
+}
+
+func (s *service) setCacheFizzBuzz(ctx context.Context, fizzBuzz, result string) error {
+	return s.redisClient.Set(ctx, fizzBuzz, result, time.Hour).Err()
 }

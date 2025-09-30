@@ -14,7 +14,9 @@ type Repository struct {
 }
 
 func NewRepository(db *sql.DB) *Repository {
-	return &Repository{db: db}
+	return &Repository{
+		db: db,
+	}
 }
 
 func (s *Repository) SetFizzBuzz(ctx context.Context, req models.FizzBuzzRequest) error {
@@ -42,8 +44,8 @@ func (s *Repository) SetFizzBuzz(ctx context.Context, req models.FizzBuzzRequest
 
 func (s *Repository) GetFizzBuzz(ctx context.Context, req models.FizzBuzz) (string, error) {
 	query := `
-        Select result From fizzbuzz_requests 
-        Where int1 = $1 And int2 = $2 And limit_value = $3 And str1 = $4 And str2 = $5
+        SELECT result FROM fizzbuzz_requests 
+        WHERE int1 = $1 AND int2 = $2 AND limit_value = $3 AND str1 = $4 AND str2 = $5
     `
 
 	var result string
@@ -58,21 +60,41 @@ func (s *Repository) GetFizzBuzz(ctx context.Context, req models.FizzBuzz) (stri
 	return result, nil
 }
 
-func (s *Repository) GetTop(ctx context.Context, limit int) (models.FizzBuzzRequest, error) {
+func (s *Repository) GetTop(ctx context.Context, limit int) ([]models.FizzBuzzRequest, error) {
 	query := `
-        Select * From fizzbuzz_requests 
-        order by hit desc
-		limit $1
+        SELECT * FROM fizzbuzz_requests 
+        ORDER BY hit DESC
+		LIMIT $1
     `
 
-	var result models.FizzBuzzRequest
-	err := s.db.QueryRowContext(ctx, query,
-		limit,
-	).Scan(&result)
-
+	rows, err := s.db.QueryContext(ctx, query, limit)
 	if err != nil {
-		return models.FizzBuzzRequest{}, fmt.Errorf("failed to get result: %w", err)
+		return nil, fmt.Errorf("failed to get stats: %w", err)
+	}
+	defer rows.Close()
+
+	var results []models.FizzBuzzRequest
+	for rows.Next() {
+		var result models.FizzBuzzRequest
+		err := rows.Scan(
+			&result.ID,
+			&result.Int1,
+			&result.Int2,
+			&result.Limit,
+			&result.Str1,
+			&result.Str2,
+			&result.Result,
+			&result.Hit,
+			&result.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		results = append(results, result)
 	}
 
-	return result, nil
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+	return results, nil
 }

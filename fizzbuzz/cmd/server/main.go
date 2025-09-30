@@ -13,6 +13,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/fizzbuzz/internal/config"
 	"github.com/fizzbuzz/internal/handlers"
@@ -46,9 +47,23 @@ func run(ctx context.Context) error {
 		log.Fatal(err)
 	}
 
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     cfg.RedisURL,
+		Password: "",
+		DB:       0,
+	})
+
+	go func() {
+		if err := redisClient.WithTimeout(10 * time.Second).Ping(context.Background()).Err(); err != nil {
+			log.Printf("failed to connect to redis")
+		} else {
+			log.Printf("successfully connected to redis")
+		}
+	}()
+
 	repository := repository.NewRepository(db)
 
-	service := services.NewService(repository)
+	service := services.NewService(repository, redisClient)
 
 	r := handlers.SetupRouter(service)
 
