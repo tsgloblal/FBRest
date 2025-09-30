@@ -5,9 +5,10 @@ package mock
 
 import (
 	"context"
+	"sync"
+
 	"github.com/fizzbuzz/internal/models"
 	"github.com/fizzbuzz/internal/services"
-	"sync"
 )
 
 // Ensure, that ServiceMock does implement services.Service.

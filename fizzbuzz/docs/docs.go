@@ -27,8 +27,32 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "description": "int1",
+                        "name": "int1",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "int2",
+                        "name": "int2",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
                         "description": "limit",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "string1",
+                        "name": "string1",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "string2",
+                        "name": "string2",
                         "in": "query"
                     }
                 ],
@@ -37,6 +61,25 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/fizzbuzz/stats": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fizz-Buzz"
+                ],
+                "summary": "Handle Get Fizz Buzz",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_fizzbuzz_internal_models.FizzBuzzRequest"
                         }
                     }
                 }
@@ -63,6 +106,41 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_fizzbuzz_internal_models.FizzBuzzRequest": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "hit": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "int1": {
+                    "type": "integer"
+                },
+                "int2": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "str1": {
+                    "type": "string"
+                },
+                "str2": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_fizzbuzz_internal_models.HealthData": {
             "type": "object",
             "properties": {

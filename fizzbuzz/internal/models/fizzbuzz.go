@@ -28,4 +28,5 @@ type FizzBuzzRequest struct {
 	Result    string    `json:"result" db:"result"`
 	Hit       int       `json:"hit" db:"hit"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }

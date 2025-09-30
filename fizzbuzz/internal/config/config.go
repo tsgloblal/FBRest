@@ -22,7 +22,7 @@ func Load() *Config {
 		DBUser:   getEnv("DB_USER", "postgres"),
 		DBPass:   getEnv("DB_PASS", "postgres"),
 		DBName:   getEnv("DB_NAME", "fizzbuzz"),
-		RedisURL: getEnv("REDIS_URL", "cache:6379"),
+		RedisURL: getEnv("REDIS_URL", "redis://cache:6379"),
 	}
 }
 

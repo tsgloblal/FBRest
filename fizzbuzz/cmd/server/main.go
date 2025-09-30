@@ -12,7 +12,6 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-	"github.com/pressly/goose/v3"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/fizzbuzz/internal/config"
@@ -41,17 +40,16 @@ func run(ctx context.Context) error {
 	}
 	defer db.Close()
 
-	goose.SetDialect("postgres")
-
-	if err := goose.Up(db, "internal/repository/migrations"); err != nil {
-		log.Fatal(err)
+	if err := repository.RunMigrations(db); err != nil {
+		log.Fatal("Failed to run migrations:", err)
 	}
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     cfg.RedisURL,
-		Password: "",
-		DB:       0,
-	})
+	opts, err := redis.ParseURL(cfg.RedisURL)
+	if err != nil {
+		log.Printf("failed to parse Redis URL")
+	}
+
+	redisClient := redis.NewClient(opts)
 
 	go func() {
 		if err := redisClient.WithTimeout(10 * time.Second).Ping(context.Background()).Err(); err != nil {

@@ -86,6 +86,7 @@ func (s *Repository) GetTop(ctx context.Context, limit int) ([]models.FizzBuzzRe
 			&result.Result,
 			&result.Hit,
 			&result.CreatedAt,
+			&result.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)

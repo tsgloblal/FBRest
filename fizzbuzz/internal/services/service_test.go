@@ -98,12 +98,13 @@ func TestGetStats(t *testing.T) {
 		Hit:       5,
 		Result:    "1,2,fizzbuzz,4,5,fizzbuzz,7,8,fizzbuzz,10",
 		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	mock.ExpectQuery("SELECT \\* FROM fizzbuzz_requests ORDER BY hit DESC LIMIT \\$1").
 		WithArgs(1).
 		WillReturnRows(sqlmock.NewRows([]string{
-			"id", "int1", "int2", "limit_value", "str1", "str2", "result", "hit", "created_at",
+			"id", "int1", "int2", "limit_value", "str1", "str2", "result", "hit", "created_at", "updated_at",
 		}).AddRow(
 			expectedFizzBuzzRequest.ID,
 			expectedFizzBuzzRequest.Int1,
@@ -114,6 +115,7 @@ func TestGetStats(t *testing.T) {
 			expectedFizzBuzzRequest.Result,
 			expectedFizzBuzzRequest.Hit,
 			expectedFizzBuzzRequest.CreatedAt,
+			expectedFizzBuzzRequest.UpdatedAt,
 		))
 
 	service := NewService(repository.NewRepository(db), nil)

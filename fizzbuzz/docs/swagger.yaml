@@ -1,4 +1,27 @@
 definitions:
+  github_com_fizzbuzz_internal_models.FizzBuzzRequest:
+    properties:
+      created_at:
+        type: string
+      hit:
+        type: integer
+      id:
+        type: integer
+      int1:
+        type: integer
+      int2:
+        type: integer
+      limit:
+        type: integer
+      result:
+        type: string
+      str1:
+        type: string
+      str2:
+        type: string
+      updated_at:
+        type: string
+    type: object
   github_com_fizzbuzz_internal_models.HealthData:
     properties:
       status:
@@ -14,10 +37,26 @@ paths:
   /api/fizzbuzz:
     get:
       parameters:
+      - description: int1
+        in: query
+        name: int1
+        type: integer
+      - description: int2
+        in: query
+        name: int2
+        type: integer
       - description: limit
         in: query
         name: limit
         type: integer
+      - description: string1
+        in: query
+        name: string1
+        type: string
+      - description: string2
+        in: query
+        name: string2
+        type: string
       produces:
       - application/json
       responses:
@@ -25,6 +64,18 @@ paths:
           description: OK
           schema:
             type: string
+      summary: Handle Get Fizz Buzz
+      tags:
+      - Fizz-Buzz
+  /api/fizzbuzz/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_fizzbuzz_internal_models.FizzBuzzRequest'
       summary: Handle Get Fizz Buzz
       tags:
       - Fizz-Buzz
